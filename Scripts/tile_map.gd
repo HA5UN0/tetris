@@ -60,6 +60,7 @@ const step_req : int = 50
 const start_pos := Vector2i(5, 1)
 var cur_pos : Vector2i
 var speed : float # how fast piece fall 
+const ACCEL : float = 0.25
 
 
 # ---- game piece variables ----- #
@@ -68,7 +69,12 @@ var next_piece_type
 var rotation_index : int = 0 # go through the different rotated version of each piece
 var active_piece : Array
 
-# ---- grid variables ----- #
+# ---- game variables ----- #
+var score : int
+const REWARD : int = 100
+
+
+# ---- tilemap variables ----- #
 var tile_id : int = 0
 var piece_atlas : Vector2i
 var next_piece_atlas : Vector2i
@@ -80,13 +86,21 @@ var active_layer : int = 1
 # Called when the node enters the scene tree for the first time.
 func _ready() -> void:
 	new_game()
+	$HUD.get_node("StartButton").pressed.connect(new_game)
 	
 	
 func new_game():
 	# reset variables
+	score = 0
 	speed = 1.0
 	steps = [0, 0, 0] # 0:left, 1:right, 2:down
 	$HUD.get_node("GameOverLabel").hide()
+	
+	# clear everything
+	clear_piece()
+	clear_board()
+	clear_panel()
+	
 	piece_type = pick_piece()
 	piece_atlas = Vector2i(shapes_full.find(piece_type), 0) # pick the color
 	next_piece_type = pick_piece()
@@ -220,6 +234,10 @@ func check_rows():
 		# if row is full then erase it
 		if count == COLS:
 			shift_rows(row)
+			score += REWARD
+			$HUD.get_node("ScoreLabel").text = "SCORE: " + str(score)
+			speed += ACCEL
+			print(speed)
 		else:
 			row -= 1
 
@@ -232,3 +250,8 @@ func shift_rows(row):
 				erase_cell(board_layer, Vector2i(j + 1, i))
 			else:
 				set_cell(board_layer, Vector2i(j + 1, i), tile_id, atlas)
+
+func clear_board():
+	for i in range(ROWS):
+		for j in range(COLS):
+			erase_cell(board_layer, Vector2i(j + 1, i + 1))
