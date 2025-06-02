@@ -51,7 +51,7 @@ var shapes_full := shapes.duplicate()
 
 # ---- grid variables ----- #
 const COLS : int = 10
-const ROWs : int = 20
+const ROWS : int = 20
 
 # ---- movement variables ----- #
 const directions := [Vector2i.LEFT,Vector2i.RIGHT, Vector2i.DOWN]
@@ -170,6 +170,7 @@ func move_piece(dir):
 	else:
 		if dir == Vector2i.DOWN:
 			land_piece()
+			check_rows()
 			# re assign current piece after landing
 			piece_type = next_piece_type
 			piece_atlas = next_piece_atlas
@@ -202,10 +203,32 @@ func land_piece():
 	for i in active_piece:
 		erase_cell(active_layer, cur_pos + i)
 		set_cell(board_layer, cur_pos + i, tile_id, piece_atlas)
-		
-		
-		
+
+
 func clear_panel():
 	for i in range(14, 19):
 		for j in range(5, 9):
 			erase_cell(active_layer, Vector2i(i, j))
+
+func check_rows():
+	var row : int = ROWS 
+	while row > 0:
+		var count = 0
+		for i in range(COLS):
+			if not is_free(Vector2i(i + 1, row)):
+				count += 1
+		# if row is full then erase it
+		if count == COLS:
+			shift_rows(row)
+		else:
+			row -= 1
+
+func shift_rows(row):
+	var atlas
+	for i in range(row, 1, -1):
+		for j in range(COLS):
+			atlas = get_cell_atlas_coords(board_layer, Vector2i(j + 1, i - 1))
+			if atlas == Vector2i(-1, 1):
+				erase_cell(board_layer, Vector2i(j + 1, i))
+			else:
+				set_cell(board_layer, Vector2i(j + 1, i), tile_id, atlas)
