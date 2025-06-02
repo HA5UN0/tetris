@@ -103,6 +103,8 @@ func _process(delta: float) -> void:
 		steps[1] += 10
 	elif Input.is_action_pressed("ui_down"):
 		steps[2] += 10
+	elif Input.is_action_pressed("ui_up"):
+		rotate_piece()
 	
 	# apply downward movement every frame
 	steps[2] += speed
@@ -143,6 +145,13 @@ func draw_piece(piece, pos, atlas):
 	for i in piece:
 		set_cell(active_layer, pos + i, tile_id, atlas)
 
+func rotate_piece():
+	if can_rotate():
+		clear_piece()
+		rotation_index = (rotation_index + 1) % 4
+		active_piece = piece_type[rotation_index]
+		draw_piece(active_piece, cur_pos, piece_atlas)
+		
 # debug stuff
 func quick_reset():
 	if Input.is_action_just_pressed("quick_reset"):
@@ -162,6 +171,14 @@ func can_move(dir):
 		if not is_free(i + cur_pos + dir):
 			cm = false
 	return cm
+
+func can_rotate():
+	var cr = true
+	var temp_rotation_index = (rotation_index + 1) % 4
+	for i in piece_type[temp_rotation_index]:
+		if not is_free(i + cur_pos):
+			cr = false
+	return cr
 
 func is_free(pos):
 	return get_cell_source_id(board_layer, pos) == -1
