@@ -54,7 +54,8 @@ const COLS : int = 10
 const ROWs : int = 20
 
 # ---- movement variables ----- #
-var steps : int
+const directions := [Vector2i.LEFT,Vector2i.RIGHT, Vector2i.DOWN]
+var steps : Array
 const step_req : int = 50
 const start_pos := Vector2i(5, 1)
 var cur_pos : Vector2i
@@ -84,7 +85,7 @@ func _ready() -> void:
 func new_game():
 	# reset variables
 	speed = 1.0
-	steps = 0
+	steps = [0, 0, 0] # 0:left, 1:right, 2:down
 	
 	piece_type = pick_piece()
 	piece_atlas = Vector2i(shapes_full.find(piece_type), 0) # pick the color
@@ -94,12 +95,23 @@ func new_game():
 func _process(delta: float) -> void:
 	#draw_piece(piece_type[0], Vector2i(5, 1), piece_atlas)
 	
-	# apply downward movement every frame
-	steps += speed
-	if steps > step_req:
-		move_piece(Vector2i.DOWN)
-		steps = 0
+	# checking for player input
+	#--- increase fall speed
+	if Input.is_action_pressed("ui_left"):
+		steps[0] += 10
+	elif Input.is_action_pressed("ui_right"):
+		steps[1] += 10
+	elif Input.is_action_pressed("ui_down"):
+		steps[2] += 10
 	
+	# apply downward movement every frame
+	steps[2] += speed
+	#move the piece
+	for i in range(steps.size()):
+		if steps[i] > step_req:
+			move_piece(directions[i])
+			steps[i] = 0
+		
 	# debug mode --------------
 	quick_reset()
 	# debug mode --------------
@@ -118,6 +130,7 @@ func pick_piece():
 
 func create_piece():
 	# reset variables
+	steps = [0, 0, 0] # 0:left, 1:right, 2:down 
 	cur_pos = start_pos
 	active_piece = piece_type[rotation_index]
 	draw_piece(active_piece, cur_pos, piece_atlas)
@@ -137,6 +150,18 @@ func quick_reset():
 		print("quick reset activated")
 
 func move_piece(dir):
-	clear_piece()
-	cur_pos += dir
-	draw_piece(active_piece, cur_pos, piece_atlas)
+	if can_move(dir):
+		clear_piece()
+		cur_pos += dir
+		draw_piece(active_piece, cur_pos, piece_atlas)
+
+func can_move(dir):
+	# check if there is space to move
+	var cm = true
+	for i in active_piece:
+		if not is_free(i + cur_pos + dir):
+			cm = false
+	return cm
+
+func is_free(pos):
+	return get_cell_source_id(board_layer, pos) == -1
