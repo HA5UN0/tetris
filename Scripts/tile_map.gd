@@ -89,6 +89,8 @@ func new_game():
 	$HUD.get_node("GameOverLabel").hide()
 	piece_type = pick_piece()
 	piece_atlas = Vector2i(shapes_full.find(piece_type), 0) # pick the color
+	next_piece_type = pick_piece()
+	next_piece_atlas = Vector2i(shapes_full.find(piece_type), 0) # pick the color
 	create_piece()
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
@@ -136,6 +138,8 @@ func create_piece():
 	cur_pos = start_pos
 	active_piece = piece_type[rotation_index]
 	draw_piece(active_piece, cur_pos, piece_atlas)
+	# show next piece
+	draw_piece(next_piece_type[0], Vector2i(15, 6), next_piece_atlas)
 
 func clear_piece():
 	for i in active_piece:
