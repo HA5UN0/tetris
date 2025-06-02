@@ -86,7 +86,7 @@ func new_game():
 	# reset variables
 	speed = 1.0
 	steps = [0, 0, 0] # 0:left, 1:right, 2:down
-	
+	$HUD.get_node("GameOverLabel").hide()
 	piece_type = pick_piece()
 	piece_atlas = Vector2i(shapes_full.find(piece_type), 0) # pick the color
 	create_piece()
