@@ -167,6 +167,16 @@ func move_piece(dir):
 		clear_piece()
 		cur_pos += dir
 		draw_piece(active_piece, cur_pos, piece_atlas)
+	else:
+		if dir == Vector2i.DOWN:
+			land_piece()
+			# re assign current piece after landing
+			piece_type = next_piece_type
+			piece_atlas = next_piece_atlas
+			next_piece_type = pick_piece()
+			next_piece_atlas = Vector2i(shapes_full.find(next_piece_type), 0)
+			clear_panel()
+			create_piece()
 
 func can_move(dir):
 	# check if there is space to move
@@ -186,3 +196,16 @@ func can_rotate():
 
 func is_free(pos):
 	return get_cell_source_id(board_layer, pos) == -1
+
+func land_piece():
+	# remove each segment from the active layer and move to board layer
+	for i in active_piece:
+		erase_cell(active_layer, cur_pos + i)
+		set_cell(board_layer, cur_pos + i, tile_id, piece_atlas)
+		
+		
+		
+func clear_panel():
+	for i in range(14, 19):
+		for j in range(5, 9):
+			erase_cell(active_layer, Vector2i(i, j))
