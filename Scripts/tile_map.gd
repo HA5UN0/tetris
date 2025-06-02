@@ -72,6 +72,7 @@ var active_piece : Array
 # ---- game variables ----- #
 var score : int
 const REWARD : int = 100
+var game_running : bool
 
 
 # ---- tilemap variables ----- #
@@ -93,6 +94,7 @@ func new_game():
 	# reset variables
 	score = 0
 	speed = 1.0
+	game_running = true
 	steps = [0, 0, 0] # 0:left, 1:right, 2:down
 	$HUD.get_node("GameOverLabel").hide()
 	
@@ -111,28 +113,29 @@ func new_game():
 func _process(delta: float) -> void:
 	#draw_piece(piece_type[0], Vector2i(5, 1), piece_atlas)
 	
-	# checking for player input
-	#--- increase fall speed
-	if Input.is_action_pressed("ui_left"):
-		steps[0] += 10
-	elif Input.is_action_pressed("ui_right"):
-		steps[1] += 10
-	elif Input.is_action_pressed("ui_down"):
-		steps[2] += 10
-	elif Input.is_action_pressed("ui_up"):
-		rotate_piece()
-	
-	# apply downward movement every frame
-	steps[2] += speed
-	#move the piece
-	for i in range(steps.size()):
-		if steps[i] > step_req:
-			move_piece(directions[i])
-			steps[i] = 0
+	if game_running:
+		# checking for player input
+		#--- increase fall speed
+		if Input.is_action_pressed("ui_left"):
+			steps[0] += 10
+		elif Input.is_action_pressed("ui_right"):
+			steps[1] += 10
+		elif Input.is_action_pressed("ui_down"):
+			steps[2] += 10
+		elif Input.is_action_pressed("ui_up"):
+			rotate_piece()
 		
-	# debug mode --------------
-	quick_reset()
-	# debug mode --------------
+		# apply downward movement every frame
+		steps[2] += speed
+		#move the piece
+		for i in range(steps.size()):
+			if steps[i] > step_req:
+				move_piece(directions[i])
+				steps[i] = 0
+			
+		# debug mode --------------
+		quick_reset()
+		# debug mode --------------
 
 # impoved way of picking a random piece 
 func pick_piece():
@@ -192,6 +195,7 @@ func move_piece(dir):
 			next_piece_atlas = Vector2i(shapes_full.find(next_piece_type), 0)
 			clear_panel()
 			create_piece()
+			check_game_over()
 
 func can_move(dir):
 	# check if there is space to move
@@ -255,3 +259,10 @@ func clear_board():
 	for i in range(ROWS):
 		for j in range(COLS):
 			erase_cell(board_layer, Vector2i(j + 1, i + 1))
+
+func check_game_over():
+	for i in active_piece:
+		if not is_free(i + cur_pos):
+			land_piece()
+			$HUD.get_node("GameOverLabel").show()
+			game_running = false
